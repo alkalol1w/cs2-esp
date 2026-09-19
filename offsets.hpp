@@ -2,14 +2,14 @@
 #include <cstdint>
 
 namespace Offsets {
-    // client.dll (offsets CS2 build ~2024 sonu; güncelleme gelirse yenile)
+    // client.dll — 2026-09-10 dumper çıktısı
     constexpr uintptr_t dwEntityList              = 0x2577BE0;
-    constexpr uintptr_t dwLocalPlayerPawn         = 0x2578FC8;
-    constexpr uintptr_t dwLocalPlayerController   = 0x23FECD0;
-    constexpr uintptr_t dwViewMatrix              = 0x256CFF0;
-    constexpr uintptr_t dwGlowManager             = 0x254E8B8;
+    constexpr uintptr_t dwLocalPlayerPawn         = 0x23CCC08;
+    constexpr uintptr_t dwLocalPlayerController   = 0x23A78D0;
+    constexpr uintptr_t dwViewMatrix              = 0x23D21F0;
+    constexpr uintptr_t dwGlowManager             = 0x23C93F8;
 
-    // Entity offsets
+    // Entity offsets (C_BaseEntity / C_CSPlayerPawn)
     constexpr uintptr_t m_iHealth                 = 0x344;
     constexpr uintptr_t m_iTeamNum                = 0x3E3;
     constexpr uintptr_t m_lifeState               = 0x338;
