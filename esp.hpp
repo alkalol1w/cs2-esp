@@ -36,12 +36,12 @@ public:
         if (localPawn) localPos = mem.Read<Vector3>(localPawn + Offsets::m_vOldOrigin);
 
         for (int i = 1; i < 64; ++i) {
-            // ADIM 1: Chunk base (düzeltildi: 0x10 -> 0x8)
+            // ADIM 1: Chunk base (0x10 offset'i ile iki seviyeli pointer)
             uintptr_t listEntry = mem.Read<uintptr_t>(
-                entityList + 8 * (i >> 9) + 0x8);
+                entityList + 0x10 + (i >> 9) * 0x8);
             if (!listEntry) continue;
 
-            // ADIM 2: Controller (düzeltildi: 120 -> 0x70)
+            // ADIM 2: Controller (0x70 stride)
             uintptr_t controller = mem.Read<uintptr_t>(
                 listEntry + 0x70 * (i & 0x1FF));
             if (!controller) continue;
@@ -51,12 +51,12 @@ public:
                 controller + Offsets::m_hPlayerPawn);
             if (pawnHandle == 0) continue;
 
-            // ADIM 4: İkinci chunk (düzeltildi: 0x10 -> 0x8)
+            // ADIM 4: İkinci chunk
             uintptr_t listEntry2 = mem.Read<uintptr_t>(
-                entityList + 8 * ((pawnHandle & 0x7FFF) >> 9) + 0x8);
+                entityList + 0x10 + ((pawnHandle & 0x7FFF) >> 9) * 0x8);
             if (!listEntry2) continue;
 
-            // ADIM 5: Pawn (düzeltildi: 120 -> 0x70)
+            // ADIM 5: Pawn (0x70 stride)
             uintptr_t pawn = mem.Read<uintptr_t>(
                 listEntry2 + 0x70 * (pawnHandle & 0x1FF));
             if (!pawn || pawn == localPawn) continue;
@@ -66,7 +66,7 @@ public:
             int      team      = mem.Read<uint8_t>(pawn + Offsets::m_iTeamNum);
             uint8_t  lifeState = mem.Read<uint8_t>(pawn + Offsets::m_lifeState);
 
-            // Filtre: Canlı ve geçerli takımda mı?
+            // Filtre
             if (lifeState != 0 || hp <= 0 || hp > 100) continue;
             if (team != 2 && team != 3) continue;
 
