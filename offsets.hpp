@@ -19,5 +19,5 @@ namespace Offsets {
     constexpr uintptr_t m_boneArray               = 0x80;    // bone matrix offset
     constexpr uintptr_t m_iIDEntIndex             = 0x342C;  // C_CSPlayerPawn
     constexpr uintptr_t m_iszPlayerName           = 0x6F4;   // controller
-    constexpr uintptr_t m_hPlayerPawn             = 0x914;   // controller -> pawn handle
+    constexpr uintptr_t m_hPlayerPawn             = 0x814;   // controller -> pawn handle
 }
