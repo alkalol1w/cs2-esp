@@ -35,70 +35,40 @@ public:
         Vector3 localPos{};
         if (localPawn) localPos = mem.Read<Vector3>(localPawn + Offsets::m_vOldOrigin);
 
-        // Debug: her 200 frame'de bir detaylı log
-        static int frame = 0;
-        bool log = (frame++ % 200 == 0);
-
-        if (log) {
-            printf("\n[ESP] entityList=0x%llX localPawn=0x%llX\n",
-                   (unsigned long long)entityList, (unsigned long long)localPawn);
-        }
-
         for (int i = 1; i < 64; ++i) {
-            // ADIM 1: chunk base
+            // ADIM 1: Chunk base (düzeltildi: 0x10 -> 0x8)
             uintptr_t listEntry = mem.Read<uintptr_t>(
-                entityList + 8 * (i >> 9) + 0x10);
+                entityList + 8 * (i >> 9) + 0x8);
             if (!listEntry) continue;
 
-            // ADIM 2: controller
+            // ADIM 2: Controller (düzeltildi: 120 -> 0x70)
             uintptr_t controller = mem.Read<uintptr_t>(
-                listEntry + 120 * (i & 0x1FF));
+                listEntry + 0x70 * (i & 0x1FF));
             if (!controller) continue;
 
-            // ADIM 3: pawn handle
+            // ADIM 3: Pawn handle
             uint32_t pawnHandle = mem.Read<uint32_t>(
                 controller + Offsets::m_hPlayerPawn);
-
-            // Debug: sadece ilk 6 entity için
-            if (log && i <= 6) {
-                printf("  i=%d chunk=0x%llX ctrl=0x%llX handle=0x%X\n",
-                       i,
-                       (unsigned long long)listEntry,
-                       (unsigned long long)controller,
-                       pawnHandle);
-            }
-
             if (pawnHandle == 0) continue;
 
-            // ADIM 4: 2. chunk
+            // ADIM 4: İkinci chunk (düzeltildi: 0x10 -> 0x8)
             uintptr_t listEntry2 = mem.Read<uintptr_t>(
-                entityList + 8 * ((pawnHandle & 0x7FFF) >> 9) + 0x10);
+                entityList + 8 * ((pawnHandle & 0x7FFF) >> 9) + 0x8);
             if (!listEntry2) continue;
 
-            // ADIM 5: pawn
+            // ADIM 5: Pawn (düzeltildi: 120 -> 0x70)
             uintptr_t pawn = mem.Read<uintptr_t>(
-                listEntry2 + 120 * (pawnHandle & 0x1FF));
+                listEntry2 + 0x70 * (pawnHandle & 0x1FF));
             if (!pawn || pawn == localPawn) continue;
 
-            if (log && i <= 6) {
-                printf("    pawn=0x%llX\n", (unsigned long long)pawn);
-            }
-
-            // ADIM 6: veriler
+            // ADIM 6: Veriler
             int      hp        = mem.Read<int>(pawn + Offsets::m_iHealth);
             int      team      = mem.Read<uint8_t>(pawn + Offsets::m_iTeamNum);
             uint8_t  lifeState = mem.Read<uint8_t>(pawn + Offsets::m_lifeState);
 
-            if (log && i <= 6) {
-                printf("    hp=%d team=%d lifeState=%d\n", hp, team, lifeState);
-            }
-
-            // Filtre
+            // Filtre: Canlı ve geçerli takımda mı?
             if (lifeState != 0 || hp <= 0 || hp > 100) continue;
             if (team != 2 && team != 3) continue;
-            if (team == localTeam) {
-                // Takım arkadaşlarını da göstermek istersen burayı kaldır
-            }
 
             PlayerInfo info{};
             info.health = hp;
@@ -119,10 +89,6 @@ public:
             info.distance = delta.Length() * 0.01905f;
 
             players.push_back(info);
-        }
-
-        if (log) {
-            printf("[ESP] SONUC: %zu oyuncu bulundu\n", players.size());
         }
     }
 };
