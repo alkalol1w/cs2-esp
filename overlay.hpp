@@ -53,7 +53,7 @@ public:
         HDC hdc = GetDC(hwnd);
 
         // Siyah arka plan -> colorkey ile şeffaf
-        HBRUSH bg = CreateSolidBrush(RGB(0, 0, 0));
+        HBRUSH bg = CreateSolidBrush(RGB(50, 50, 50));  // TEST için gri
         RECT rc{ 0, 0, width, height };
         FillRect(hdc, &rc, bg);
         DeleteObject(bg);
