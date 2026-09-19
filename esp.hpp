@@ -35,38 +35,60 @@ public:
         Vector3 localPos{};
         if (localPawn) localPos = mem.Read<Vector3>(localPawn + Offsets::m_vOldOrigin);
 
+        // Debug log
+        static int frame = 0;
+        bool log = (frame++ % 200 == 0);
+
+        if (log) {
+            printf("\n[ESP] entityList=0x%llX localPawn=0x%llX\n",
+                   (unsigned long long)entityList, (unsigned long long)localPawn);
+        }
+
         for (int i = 1; i < 64; ++i) {
-            // ADIM 1: Chunk base (0x10 offset'i ile iki seviyeli pointer)
+            // Düzeltme 1: chunk offset 0x10 yerine 0x8 kullanılıyor
             uintptr_t listEntry = mem.Read<uintptr_t>(
-                entityList + 0x10 + (i >> 9) * 0x8);
+                entityList + 0x8 + (i >> 9) * 0x8);
             if (!listEntry) continue;
 
-            // ADIM 2: Controller (0x70 stride)
+            // Düzeltme 2: stride 120 (0x78) yerine 112 (0x70) kullanılıyor
             uintptr_t controller = mem.Read<uintptr_t>(
                 listEntry + 0x70 * (i & 0x1FF));
             if (!controller) continue;
 
-            // ADIM 3: Pawn handle
             uint32_t pawnHandle = mem.Read<uint32_t>(
                 controller + Offsets::m_hPlayerPawn);
+
+            if (log && i <= 6) {
+                printf("  i=%d chunk=0x%llX ctrl=0x%llX handle=0x%X\n",
+                       i,
+                       (unsigned long long)listEntry,
+                       (unsigned long long)controller,
+                       pawnHandle);
+            }
+
             if (pawnHandle == 0) continue;
 
-            // ADIM 4: İkinci chunk
+            // İkinci chunk için de aynı düzeltmeler uygulanıyor
             uintptr_t listEntry2 = mem.Read<uintptr_t>(
-                entityList + 0x10 + ((pawnHandle & 0x7FFF) >> 9) * 0x8);
+                entityList + 0x8 + ((pawnHandle & 0x7FFF) >> 9) * 0x8);
             if (!listEntry2) continue;
 
-            // ADIM 5: Pawn (0x70 stride)
             uintptr_t pawn = mem.Read<uintptr_t>(
                 listEntry2 + 0x70 * (pawnHandle & 0x1FF));
             if (!pawn || pawn == localPawn) continue;
 
-            // ADIM 6: Veriler
+            if (log && i <= 6) {
+                printf("    pawn=0x%llX\n", (unsigned long long)pawn);
+            }
+
             int      hp        = mem.Read<int>(pawn + Offsets::m_iHealth);
             int      team      = mem.Read<uint8_t>(pawn + Offsets::m_iTeamNum);
             uint8_t  lifeState = mem.Read<uint8_t>(pawn + Offsets::m_lifeState);
 
-            // Filtre
+            if (log && i <= 6) {
+                printf("    hp=%d team=%d lifeState=%d\n", hp, team, lifeState);
+            }
+
             if (lifeState != 0 || hp <= 0 || hp > 100) continue;
             if (team != 2 && team != 3) continue;
 
@@ -89,6 +111,10 @@ public:
             info.distance = delta.Length() * 0.01905f;
 
             players.push_back(info);
+        }
+
+        if (log) {
+            printf("[ESP] SONUC: %zu oyuncu bulundu\n", players.size());
         }
     }
 };
